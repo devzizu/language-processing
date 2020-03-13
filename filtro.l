@@ -3,32 +3,28 @@
 
 int numberComments;
 
-struct commentThread 
+typedef struct commentThread 
 {
    char*  id;
-   char  user[50];
-   char  date[100];
+   char* user;
+   char*  date;
    int	timestamp;
-   char	commentText[200];
+   char	*commentText;
    int   likes;
    int   hasReplies;
    int   numberReplies;
 
-   struct commentThread* replies;
-};
-
-typedef struct commentThread* commentT;
-
-char dest[50];
+   // struct commentThread* replies;
+} COMMENT_T;
 
 %}
 
 %%
 
-(?i:data-comment-id=)\"[^\"]*\"   {
-                  ct->id = strncpy(dest, yytext + 18, strlen(yytext + 18) - 1);
-                  printf("%s\n", ct -> id);
-                  }
+([0-9]+)/[ ]comentários {
+                           numberComments = atoi(yytext);
+                           printf("Number of Comments: %d\n", numberComments);
+                        }
 .|\n           
 
 %%
@@ -39,8 +35,8 @@ int yywrap()
 
 
 int main()
-{ 
-   commentT ct = malloc(sizeof(struct commentThread));
-   yylex(); return 0; 
+{
+   
+  yylex(); return 0; 
 }
 
