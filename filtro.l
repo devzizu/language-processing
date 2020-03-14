@@ -1,6 +1,8 @@
 %{
 /* Declaracoes C diversas */
 // #include <glib.h>
+#include <stdio.h>
+#include <time.h>
 
 int numberComments;
 int test = 0;
@@ -21,12 +23,16 @@ typedef struct commentThread
 
 COMMENT_T ct;
 
+
 %}
 
 %x COMMENT_ID
 %x OLIST
 %x NOMEAUTOR
+%x CONTADESATIVADA
 %x USER
+%x TIME
+%x DATE
 
 
 %%
@@ -35,12 +41,9 @@ COMMENT_T ct;
                                           printf("Number of Comments: %d\n", numberComments); 
                                         }
 
-\<ol(.*)id\=\"approved-comments\"\> { BEGIN OLIST; }
+\<ol(.*)class\=\"comments__list\"(.*)\>\< { BEGIN OLIST; }
 
-\<ol[ ]+class\=\"comments__list\"\>   { BEGIN OLIST; }
-
-<OLIST>\<li.*data-comment-id\=\" { BEGIN COMMENT_ID; }  
-<OLIST>\<\/ol\>   { BEGIN INITIAL; } 
+<OLIST>li(.*)data-comment-id\=\" { BEGIN COMMENT_ID; }  
 <OLIST>.|\n
 
 <COMMENT_ID>[A-Za-z0-9-]+/\"> { 
@@ -50,15 +53,34 @@ COMMENT_T ct;
                                  BEGIN USER; 
                               }
 
-<USER>\<a(.*)\"\> { BEGIN NOMEAUTOR; }
-<NOMEAUTOR>.*/\<  {
-                     ct->user = strdup(yytext);
-                     printf("User: %s\n", ct->user); 
+<USER>\<h5(.*)\>\n\<a(.*)\"> { BEGIN NOMEAUTOR; }
+<USER>\<h5(.*)\>\n   { BEGIN CONTADESATIVADA; }
+<USER>.|\n  
+
+<NOMEAUTOR>(.*)/\<\/a\>\n\<\/h5\> {
+                                    ct->user = strdup(yytext);
+                                    printf("\tUser: %s\n", ct->user); 
+                                    BEGIN TIME;
+                                  }
+
+<CONTADESATIVADA>(.*)/\n[ ]+\<\/h5\> {
+                                    ct-> user = strdup(yytext);
+                                    printf("\tUser: %s\n", ct->user);
+                                    BEGIN TIME;
+                                 }      
+
+<TIME>(.*)\<time(.*)\>\n\<a(.*)\"\>    { BEGIN DATE; }
+<TIME>.|\n
+
+<DATE>(.*)/\<\/a> {
+                     ct->date = strdup(yytext);
+                     printf("\tDATE: %s\n", ct->date);
+
+                     // falta o timestamp
+
                      BEGIN OLIST;
                   }
-<USER>.|\n        
-
-
+            
 .|\n           
 
 %%
