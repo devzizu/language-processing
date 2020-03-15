@@ -9,30 +9,37 @@ int test = 0;
 
 typedef struct commentThread 
 {
-   char*  id;
-   char*  user;
-   char*  date;
-   int	 timestamp;
-   char*  commentText;
-   int    likes;
-   int    hasReplies;
-   int    numberReplies;
+   char*     id;
+   char*     user;
+   char*     date;
+   long int	 timestamp;
+   char*     commentText;
+   int       likes;
+   int       hasReplies;
+   int       numberReplies;
 
    //struct commentThread* replies;
 } *COMMENT_T;
 
 COMMENT_T ct;
 
+int year, month, day, hour, minutes;
+
+int replies = 0;
 
 %}
 
-%x COMMENT_ID
 %x OLIST
+%x COMMENT_ID
 %x NOMEAUTOR
 %x CONTADESATIVADA
 %x USER
 %x TIME
 %x DATE
+%x COMMENT_CONTENT
+%x TEXT
+%x LIKES
+%x NUMBERLIKES
 
 
 %%
@@ -43,15 +50,26 @@ COMMENT_T ct;
 
 \<ol(.*)class\=\"comments__list\"(.*)\>\< { BEGIN OLIST; }
 
-<OLIST>li(.*)data-comment-id\=\" { BEGIN COMMENT_ID; }  
+<OLIST>li(.*)data-comment-id\=\" { BEGIN COMMENT_ID; }
+<OLIST>\<ol(.*)\"comments__list\"\>\n*\<  {  
+                                             replies++; 
+                                             printf("\t\tREPLIES = TRUE\n");
+                                             ct->hasReplies = 1;
+                                             BEGIN COMMENT_ID;
+                                          }
+<OLIST>\<\/ol\>   { 
+                     ct->numberReplies = replies;
+                     printf("Number of Replies: %d\n", replies);
+                     replies = 0;
+                  }
 <OLIST>.|\n
 
-<COMMENT_ID>[A-Za-z0-9-]+/\"> { 
+<COMMENT_ID>[A-Za-z0-9-]+/\"> {  
                                  ct->id = strdup(yytext);
-                                 test++;
                                  printf("Id: %s\n", ct->id);
                                  BEGIN USER; 
                               }
+<COMMENT_ID>.|\n
 
 <USER>\<h5(.*)\>\n\<a(.*)\"> { BEGIN NOMEAUTOR; }
 <USER>\<h5(.*)\>\n   { BEGIN CONTADESATIVADA; }
@@ -64,23 +82,55 @@ COMMENT_T ct;
                                   }
 
 <CONTADESATIVADA>(.*)/\n[ ]+\<\/h5\> {
-                                    ct-> user = strdup(yytext);
-                                    printf("\tUser: %s\n", ct->user);
-                                    BEGIN TIME;
-                                 }      
+                                       ct-> user = strdup(yytext);
+                                       printf("\tUser: %s\n", ct->user);
+                                       BEGIN TIME;
+                                     }      
 
-<TIME>(.*)\<time(.*)\>\n\<a(.*)\"\>    { BEGIN DATE; }
+<TIME>\<time(.*)\>\n\<a(.*)\"\>    { BEGIN DATE; }
 <TIME>.|\n
 
 <DATE>(.*)/\<\/a> {
                      ct->date = strdup(yytext);
                      printf("\tDATE: %s\n", ct->date);
 
-                     // falta o timestamp
+                     sscanf(yytext, "%d.%d.%d %d:%d", &day, &month, &year, &hour, &minutes);
 
-                     BEGIN OLIST;
+                     struct tm t;
+                     time_t data;
+
+                     t.tm_year = year;
+                     t.tm_mon = month;
+                     t.tm_mday = day;
+                     t.tm_hour = hour;
+                     t.tm_min = minutes;
+                     t.tm_sec = 0;
+                     t.tm_isdst = -1;
+                     data = mktime(&t);
+
+                     ct->timestamp = (long) data;
+                     printf("\tTimestamp: %ld\n", data);
+
+                     BEGIN COMMENT_CONTENT;
                   }
-            
+
+<COMMENT_CONTENT>\<p\>[ \n]*  { BEGIN TEXT; }
+<COMMENT_CONTENT>.|\n
+
+<TEXT>[^\<]*   {     
+                  test++;
+                  printf("\tText: %s\n\n", yytext);
+                  BEGIN LIKES;
+               }
+
+<LIKES>(.*)\"updatable[ ]+count\"[ ]+\=\"likes\"\>  { BEGIN NUMBERLIKES; }
+<LIKES>.|\n { BEGIN OLIST; }
+
+<NUMBERLIKES>[0-9]*/\<span\>  {
+                                 ct->likes = atoi(yytext);
+                                 BEGIN OLIST;
+                              }
+
 .|\n           
 
 %%
