@@ -2,10 +2,7 @@
 /* Declaracoes C diversas */
 #include <stdio.h>
 #include <time.h>
-//#include <glib.h>
-
-int numberComments;
-int test = 0;
+//#include <glib.h> 
 
 typedef struct commentThread 
 {
@@ -18,16 +15,21 @@ typedef struct commentThread
    int       hasReplies;
    int       numberReplies;
 
-   struct commentThread* replies;
-
    struct commentThread* next;
 
 } *COMMENT_T;
 
+int numberComments;
+int test = 0;
+
+COMMENT_T p;
+COMMENT_T inicio;
 COMMENT_T ct;
+
 int year, month, day, hour, minutes;
 
-int replies = 0;
+int replies = 0, begin = 1;
+
 
 %}
 
@@ -47,49 +49,71 @@ int replies = 0;
 %%
 [0-9]+/[ ]+[-'a-zA-ZÀ-ÖØ-öø-ÿ]+<\/h3>\] { 
                                           numberComments = atoi(yytext);
-                                          printf("Number of Comments: %d\n", numberComments); 
+                                          //printf("Number of Comments: %d\n", numberComments); 
                                         }
 
-\<ol(.*)class\=\"comments__list\"(.*)\>\< { BEGIN OLIST; }
+\<ol(.*)class\=\"comments__list\"(.*)\>\< { 
+                                             ct = (COMMENT_T) malloc(sizeof(struct commentThread));
+                                             BEGIN OLIST; 
+                                          }
 
 <OLIST>li(.*)data-comment-id\=\" {  
-                                    BEGIN COMMENT_ID; 
+                                    ct -> next = (COMMENT_T) malloc(sizeof(struct commentThread));
+                                    ct = ct->next;
+
+                                    ct->timestamp = 0;
+                                    ct->likes = 0;
+                                    ct->hasReplies = 0;
+                                    ct->numberReplies = 0;
+
+                                    BEGIN COMMENT_ID;
                                  }
 <OLIST>\<ol(.*)\"comments__list\"\>\n*\<  {  
-                                             replies = 0;
-                                             printf("\t\tREPLIES = TRUE\n");
                                              ct->hasReplies = 1;
-                                             ct->replies = (COMMENT_T) malloc(sizeof(struct commentThread));
+                                             p = ct;
+
+                                             ct -> next = (COMMENT_T) malloc(sizeof(struct commentThread));
+                                             ct = ct->next;
+
+                                             ct->timestamp = 0;
+                                             ct->likes = 0;
+                                             ct->hasReplies = 0;
+                                             ct->numberReplies = 0;
+
+                                             replies = 0;
+                                             //printf("\t\tREPLIES = TRUE\n");
                                              BEGIN COMMENT_ID;
                                           }
 <OLIST>\<\/ol\>   { 
-                     ct->numberReplies = replies;
-                     printf("Number of Replies: %d\n", replies);
-                     replies = 0;
+                     if(test <= 85)
+                        {
+                           p->numberReplies = replies;
+                        }
+                     //printf("Number of Replies: %d (%d)\n", p->numberReplies, test);
                   }
 <OLIST>.|\n
 
 <COMMENT_ID>[A-Za-z0-9-]+/\"> {  
                                  replies++;
                                  ct->id = strdup(yytext);
-                                 printf("Id: %s\n", ct->id);
+                                 //printf("Id: %s\n", ct->id);
                                  BEGIN USER; 
                               }
 <COMMENT_ID>.|\n
 
 <USER>\<h5(.*)\>\n\<a(.*)\"> { BEGIN NOMEAUTOR; }
 <USER>\<h5(.*)\>\n   { BEGIN CONTADESATIVADA; }
-<USER>.|\n  
+<USER>.|\n     
 
 <NOMEAUTOR>(.*)/\<\/a\>\n\<\/h5\> {
                                     ct->user = strdup(yytext);
-                                    printf("\tUser: %s\n", ct->user); 
+                                    //printf("\tUser: %s\n", ct->user); 
                                     BEGIN TIME;
                                   }
 
 <CONTADESATIVADA>(.*)/\n[ ]+\<\/h5\> {
                                        ct-> user = strdup(yytext);
-                                       printf("\tUser: %s\n", ct->user);
+                                       //printf("\tUser: %s\n", ct->user);
                                        BEGIN TIME;
                                      }      
 
@@ -98,7 +122,7 @@ int replies = 0;
 
 <DATE>(.*)/\<\/a> {
                      ct->date = strdup(yytext);
-                     printf("\tDATE: %s\n", ct->date);
+                     //printf("\tDATE: %s\n", ct->date);
 
                      sscanf(yytext, "%d.%d.%d %d:%d", &day, &month, &year, &hour, &minutes);
 
@@ -115,7 +139,7 @@ int replies = 0;
                      data = mktime(&t);
 
                      ct->timestamp = (long) data;
-                     printf("\tTimestamp: %ld\n", data);
+                     //printf("\tTimestamp: %ld\n", data);
 
                      BEGIN COMMENT_CONTENT;
                   }
@@ -125,21 +149,29 @@ int replies = 0;
 
 <TEXT>[^\<]*   {     
                   test++;
-                  printf("\tText: %s\n\n", yytext);
+                  //printf("\tText: %s\n\n", yytext);
                   ct->commentText = strdup(yytext);
                   BEGIN LIKES;
                }
 
 <LIKES>(.*)\"updatable[ ]+count\"[ ]+\=\"likes\"\>  { BEGIN NUMBERLIKES; }
 <LIKES>.|\n { 
-               ct = ct->next;
-               ct = (COMMENT_T) malloc(sizeof(struct commentThread));
+               if(begin)
+               {
+                  begin = 0;
+                  inicio = ct;
+               }
                BEGIN OLIST; 
             }
 
 <NUMBERLIKES>[0-9]*/\<span\>  {
                                  ct->likes = atoi(yytext);
-                                 ct = ct->next;
+                                 if(begin)
+                                 {
+                                    begin = 0;
+                                    inicio = ct;
+                                 }
+
                                  BEGIN OLIST;
                               }
 
@@ -153,13 +185,25 @@ int yywrap()
 
 int main()
 {
-   ct = (COMMENT_T) malloc(sizeof(struct commentThread));
-   
    yylex(); 
-   printf("\nComentarios: %d\n", test);
 
+   while(inicio != NULL)
+   {
+      printf("\nId: %s\n", inicio->id);
+      printf("\tUser: %s\n", inicio->user);
+      printf("\tDate: %s\n", inicio->date);
+      printf("\tTimestamp: %ld\n", inicio->timestamp);
+      printf("\tText: %s\n", inicio->commentText);
+      printf("\tLikes: %d\n", inicio->likes);
+      printf("\tHas Replies: %d\n", inicio->hasReplies);
+      printf("\tNumber of Replies: %d\n", inicio->numberReplies);
 
-   printf("ID CT: %s\n",ct->user);
+      inicio = inicio->next;
+   }
+
+   printf("\nComentarios Lidos: %d\n", test);
+   printf("\nComentários: %d\n", numberComments);
+
 
    return 0; 
 }

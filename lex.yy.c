@@ -684,10 +684,7 @@ char *yytext;
 /* Declaracoes C diversas */
 #include <stdio.h>
 #include <time.h>
-//#include <glib.h>
-
-int numberComments;
-int test = 0;
+//#include <glib.h> 
 
 typedef struct commentThread 
 {
@@ -700,20 +697,25 @@ typedef struct commentThread
    int       hasReplies;
    int       numberReplies;
 
-   struct commentThread* replies;
-
    struct commentThread* next;
 
 } *COMMENT_T;
 
+int numberComments;
+int test = 0;
+
+COMMENT_T p;
+COMMENT_T inicio;
 COMMENT_T ct;
+
 int year, month, day, hour, minutes;
 
-int replies = 0;
+int replies = 0, begin = 1;
 
-#line 715 "lex.yy.c"
 
 #line 717 "lex.yy.c"
+
+#line 719 "lex.yy.c"
 
 #define INITIAL 0
 #define OLIST 1
@@ -947,9 +949,9 @@ YY_DECL
 		}
 
 	{
-#line 47 "filtro.l"
+#line 49 "filtro.l"
 
-#line 953 "lex.yy.c"
+#line 955 "lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -1031,49 +1033,71 @@ do_action:	/* This label is used only to access EOF actions. */
 	{ /* beginning of action switch */
 case 1:
 YY_RULE_SETUP
-#line 48 "filtro.l"
+#line 50 "filtro.l"
 { 
                                           numberComments = atoi(yytext);
-                                          printf("Number of Comments: %d\n", numberComments); 
+                                          //printf("Number of Comments: %d\n", numberComments); 
                                         }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 53 "filtro.l"
-{ BEGIN OLIST; }
+#line 55 "filtro.l"
+{ 
+                                             ct = (COMMENT_T) malloc(sizeof(struct commentThread));
+                                             BEGIN OLIST; 
+                                          }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 55 "filtro.l"
+#line 60 "filtro.l"
 {  
-                                    BEGIN COMMENT_ID; 
+                                    ct -> next = (COMMENT_T) malloc(sizeof(struct commentThread));
+                                    ct = ct->next;
+
+                                    ct->timestamp = 0;
+                                    ct->likes = 0;
+                                    ct->hasReplies = 0;
+                                    ct->numberReplies = 0;
+
+                                    BEGIN COMMENT_ID;
                                  }
 	YY_BREAK
 case 4:
 /* rule 4 can match eol */
 YY_RULE_SETUP
-#line 58 "filtro.l"
+#line 71 "filtro.l"
 {  
-                                             replies = 0;
-                                             printf("\t\tREPLIES = TRUE\n");
                                              ct->hasReplies = 1;
-                                             ct->replies = (COMMENT_T) malloc(sizeof(struct commentThread));
+                                             p = ct;
+
+                                             ct -> next = (COMMENT_T) malloc(sizeof(struct commentThread));
+                                             ct = ct->next;
+
+                                             ct->timestamp = 0;
+                                             ct->likes = 0;
+                                             ct->hasReplies = 0;
+                                             ct->numberReplies = 0;
+
+                                             replies = 0;
+                                             //printf("\t\tREPLIES = TRUE\n");
                                              BEGIN COMMENT_ID;
                                           }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 65 "filtro.l"
+#line 87 "filtro.l"
 { 
-                     ct->numberReplies = replies;
-                     printf("Number of Replies: %d\n", replies);
-                     replies = 0;
+                     if(test <= 85)
+                        {
+                           p->numberReplies = replies;
+                        }
+                     //printf("Number of Replies: %d (%d)\n", p->numberReplies, test);
                   }
 	YY_BREAK
 case 6:
 /* rule 6 can match eol */
 YY_RULE_SETUP
-#line 70 "filtro.l"
+#line 94 "filtro.l"
 
 	YY_BREAK
 case 7:
@@ -1081,36 +1105,36 @@ case 7:
 (yy_c_buf_p) = yy_cp -= 2;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 72 "filtro.l"
+#line 96 "filtro.l"
 {  
                                  replies++;
                                  ct->id = strdup(yytext);
-                                 printf("Id: %s\n", ct->id);
+                                 //printf("Id: %s\n", ct->id);
                                  BEGIN USER; 
                               }
 	YY_BREAK
 case 8:
 /* rule 8 can match eol */
 YY_RULE_SETUP
-#line 78 "filtro.l"
+#line 102 "filtro.l"
 
 	YY_BREAK
 case 9:
 /* rule 9 can match eol */
 YY_RULE_SETUP
-#line 80 "filtro.l"
+#line 104 "filtro.l"
 { BEGIN NOMEAUTOR; }
 	YY_BREAK
 case 10:
 /* rule 10 can match eol */
 YY_RULE_SETUP
-#line 81 "filtro.l"
+#line 105 "filtro.l"
 { BEGIN CONTADESATIVADA; }
 	YY_BREAK
 case 11:
 /* rule 11 can match eol */
 YY_RULE_SETUP
-#line 82 "filtro.l"
+#line 106 "filtro.l"
 
 	YY_BREAK
 case 12:
@@ -1120,33 +1144,33 @@ YY_LINENO_REWIND_TO(yy_cp - 10);
 (yy_c_buf_p) = yy_cp -= 10;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 84 "filtro.l"
+#line 108 "filtro.l"
 {
                                     ct->user = strdup(yytext);
-                                    printf("\tUser: %s\n", ct->user); 
+                                    //printf("\tUser: %s\n", ct->user); 
                                     BEGIN TIME;
                                   }
 	YY_BREAK
 case 13:
 /* rule 13 can match eol */
 YY_RULE_SETUP
-#line 90 "filtro.l"
+#line 114 "filtro.l"
 {
                                        ct-> user = strdup(yytext);
-                                       printf("\tUser: %s\n", ct->user);
+                                       //printf("\tUser: %s\n", ct->user);
                                        BEGIN TIME;
                                      }      
 	YY_BREAK
 case 14:
 /* rule 14 can match eol */
 YY_RULE_SETUP
-#line 96 "filtro.l"
+#line 120 "filtro.l"
 { BEGIN DATE; }
 	YY_BREAK
 case 15:
 /* rule 15 can match eol */
 YY_RULE_SETUP
-#line 97 "filtro.l"
+#line 121 "filtro.l"
 
 	YY_BREAK
 case 16:
@@ -1154,10 +1178,10 @@ case 16:
 (yy_c_buf_p) = yy_cp -= 4;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 99 "filtro.l"
+#line 123 "filtro.l"
 {
                      ct->date = strdup(yytext);
-                     printf("\tDATE: %s\n", ct->date);
+                     //printf("\tDATE: %s\n", ct->date);
 
                      sscanf(yytext, "%d.%d.%d %d:%d", &day, &month, &year, &hour, &minutes);
 
@@ -1174,7 +1198,7 @@ YY_RULE_SETUP
                      data = mktime(&t);
 
                      ct->timestamp = (long) data;
-                     printf("\tTimestamp: %ld\n", data);
+                     //printf("\tTimestamp: %ld\n", data);
 
                      BEGIN COMMENT_CONTENT;
                   }
@@ -1182,38 +1206,41 @@ YY_RULE_SETUP
 case 17:
 /* rule 17 can match eol */
 YY_RULE_SETUP
-#line 123 "filtro.l"
+#line 147 "filtro.l"
 { BEGIN TEXT; }
 	YY_BREAK
 case 18:
 /* rule 18 can match eol */
 YY_RULE_SETUP
-#line 124 "filtro.l"
+#line 148 "filtro.l"
 
 	YY_BREAK
 case 19:
 /* rule 19 can match eol */
 YY_RULE_SETUP
-#line 126 "filtro.l"
+#line 150 "filtro.l"
 {     
                   test++;
-                  printf("\tText: %s\n\n", yytext);
+                  //printf("\tText: %s\n\n", yytext);
                   ct->commentText = strdup(yytext);
                   BEGIN LIKES;
                }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 133 "filtro.l"
+#line 157 "filtro.l"
 { BEGIN NUMBERLIKES; }
 	YY_BREAK
 case 21:
 /* rule 21 can match eol */
 YY_RULE_SETUP
-#line 134 "filtro.l"
+#line 158 "filtro.l"
 { 
-               ct = ct->next;
-               ct = (COMMENT_T) malloc(sizeof(struct commentThread));
+               if(begin)
+               {
+                  begin = 0;
+                  inicio = ct;
+               }
                BEGIN OLIST; 
             }
 	YY_BREAK
@@ -1222,25 +1249,30 @@ case 22:
 (yy_c_buf_p) = yy_cp -= 6;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 140 "filtro.l"
+#line 167 "filtro.l"
 {
                                  ct->likes = atoi(yytext);
-                                 ct = ct->next;
+                                 if(begin)
+                                 {
+                                    begin = 0;
+                                    inicio = ct;
+                                 }
+
                                  BEGIN OLIST;
                               }
 	YY_BREAK
 case 23:
 /* rule 23 can match eol */
 YY_RULE_SETUP
-#line 146 "filtro.l"
+#line 178 "filtro.l"
 
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 148 "filtro.l"
+#line 180 "filtro.l"
 ECHO;
 	YY_BREAK
-#line 1244 "lex.yy.c"
+#line 1276 "lex.yy.c"
 			case YY_STATE_EOF(INITIAL):
 			case YY_STATE_EOF(OLIST):
 			case YY_STATE_EOF(COMMENT_ID):
@@ -2229,7 +2261,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 148 "filtro.l"
+#line 180 "filtro.l"
 
 int yywrap()
 { 
@@ -2238,13 +2270,25 @@ int yywrap()
 
 int main()
 {
-   ct = (COMMENT_T) malloc(sizeof(struct commentThread));
-   
    yylex(); 
-   printf("\nComentarios: %d\n", test);
 
+   while(inicio != NULL)
+   {
+      printf("\nId: %s\n", inicio->id);
+      printf("\tUser: %s\n", inicio->user);
+      printf("\tDate: %s\n", inicio->date);
+      printf("\tTimestamp: %ld\n", inicio->timestamp);
+      printf("\tText: %s\n", inicio->commentText);
+      printf("\tLikes: %d\n", inicio->likes);
+      printf("\tHas Replies: %d\n", inicio->hasReplies);
+      printf("\tNumber of Replies: %d\n", inicio->numberReplies);
 
-   printf("ID CT: %s\n",ct->user);
+      inicio = inicio->next;
+   }
+
+   printf("\nComentarios Lidos: %d\n", test);
+   printf("\nComentários: %d\n", numberComments);
+
 
    return 0; 
 }
