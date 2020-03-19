@@ -1,0 +1,12 @@
+#Makefile para compilar o projeto todo
+
+CFLAGS= -O2
+CC=gcc
+
+FF = flex
+
+flex:
+	flex filtro.l
+
+filtro: 
+	$(CC) lex.yy.c `pkg-config --cflags --libs glib-2.0` $(CFLAGS) -o filtro

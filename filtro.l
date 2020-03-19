@@ -1,8 +1,8 @@
 %{
 /* Declaracoes C diversas */
-// #include <glib.h>
 #include <stdio.h>
 #include <time.h>
+//#include <glib.h>
 
 int numberComments;
 int test = 0;
@@ -18,11 +18,13 @@ typedef struct commentThread
    int       hasReplies;
    int       numberReplies;
 
-   //struct commentThread* replies;
+   struct commentThread* replies;
+
+   struct commentThread* next;
+
 } *COMMENT_T;
 
 COMMENT_T ct;
-
 int year, month, day, hour, minutes;
 
 int replies = 0;
@@ -50,11 +52,14 @@ int replies = 0;
 
 \<ol(.*)class\=\"comments__list\"(.*)\>\< { BEGIN OLIST; }
 
-<OLIST>li(.*)data-comment-id\=\" { BEGIN COMMENT_ID; }
+<OLIST>li(.*)data-comment-id\=\" {  
+                                    BEGIN COMMENT_ID; 
+                                 }
 <OLIST>\<ol(.*)\"comments__list\"\>\n*\<  {  
-                                             replies++; 
+                                             replies = 0;
                                              printf("\t\tREPLIES = TRUE\n");
                                              ct->hasReplies = 1;
+                                             ct->replies = (COMMENT_T) malloc(sizeof(struct commentThread));
                                              BEGIN COMMENT_ID;
                                           }
 <OLIST>\<\/ol\>   { 
@@ -65,6 +70,7 @@ int replies = 0;
 <OLIST>.|\n
 
 <COMMENT_ID>[A-Za-z0-9-]+/\"> {  
+                                 replies++;
                                  ct->id = strdup(yytext);
                                  printf("Id: %s\n", ct->id);
                                  BEGIN USER; 
@@ -120,14 +126,20 @@ int replies = 0;
 <TEXT>[^\<]*   {     
                   test++;
                   printf("\tText: %s\n\n", yytext);
+                  ct->commentText = strdup(yytext);
                   BEGIN LIKES;
                }
 
 <LIKES>(.*)\"updatable[ ]+count\"[ ]+\=\"likes\"\>  { BEGIN NUMBERLIKES; }
-<LIKES>.|\n { BEGIN OLIST; }
+<LIKES>.|\n { 
+               ct = ct->next;
+               ct = (COMMENT_T) malloc(sizeof(struct commentThread));
+               BEGIN OLIST; 
+            }
 
 <NUMBERLIKES>[0-9]*/\<span\>  {
                                  ct->likes = atoi(yytext);
+                                 ct = ct->next;
                                  BEGIN OLIST;
                               }
 
@@ -142,8 +154,12 @@ int yywrap()
 int main()
 {
    ct = (COMMENT_T) malloc(sizeof(struct commentThread));
+   
    yylex(); 
    printf("\nComentarios: %d\n", test);
+
+
+   printf("ID CT: %s\n",ct->user);
+
    return 0; 
 }
-
