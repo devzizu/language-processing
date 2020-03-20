@@ -1,42 +1,24 @@
 %{
-/* Declaracoes C diversas */
+/* Declarations in C */
 #include <stdio.h>
 #include <time.h>
-//#include <glib.h> 
 
-typedef struct commentThread 
-{
-   char*     id;
-   char*     user;
-   char*     date;
-   long int	 timestamp;
-   char*     commentText;
-   int       likes;
-   int       hasReplies;
-   int       numberReplies;
+#include "commentThread.h"
 
-   struct commentThread* next;
 
-} *COMMENT_T;
-
-int numberComments;
-int test = 0;
-
-COMMENT_T p;
-COMMENT_T inicio;
-COMMENT_T ct;
+COMMENT_T ct, p, beginCt;
 
 int year, month, day, hour, minutes;
 
-int replies = 0, begin = 1;
-
+int replies = 0, isBegin = 1, countComments = 0,
+   numberComments;
 
 %}
 
 %x OLIST
 %x COMMENT_ID
-%x NOMEAUTOR
-%x CONTADESATIVADA
+%x AUTHORNAME
+%x ACCOUNTDISABLED
 %x USER
 %x TIME
 %x DATE
@@ -45,11 +27,10 @@ int replies = 0, begin = 1;
 %x LIKES
 %x NUMBERLIKES
 
-
 %%
+
 [0-9]+/[ ]+[-'a-zA-ZÀ-ÖØ-öø-ÿ]+<\/h3>\] { 
                                           numberComments = atoi(yytext);
-                                          //printf("Number of Comments: %d\n", numberComments); 
                                         }
 
 \<ol(.*)class\=\"comments__list\"(.*)\>\< { 
@@ -72,7 +53,7 @@ int replies = 0, begin = 1;
                                              ct->hasReplies = 1;
                                              p = ct;
 
-                                             ct -> next = (COMMENT_T) malloc(sizeof(struct commentThread));
+                                             ct->next = (COMMENT_T) malloc(sizeof(struct commentThread));
                                              ct = ct->next;
 
                                              ct->timestamp = 0;
@@ -81,39 +62,34 @@ int replies = 0, begin = 1;
                                              ct->numberReplies = 0;
 
                                              replies = 0;
-                                             //printf("\t\tREPLIES = TRUE\n");
+
                                              BEGIN COMMENT_ID;
                                           }
 <OLIST>\<\/ol\>   { 
-                     if(test <= 85)
-                        {
-                           p->numberReplies = replies;
-                        }
-                     //printf("Number of Replies: %d (%d)\n", p->numberReplies, test);
+                     if(countComments <= 85)
+                        p->numberReplies = replies;
                   }
 <OLIST>.|\n
 
 <COMMENT_ID>[A-Za-z0-9-]+/\"> {  
                                  replies++;
                                  ct->id = strdup(yytext);
-                                 //printf("Id: %s\n", ct->id);
+
                                  BEGIN USER; 
                               }
 <COMMENT_ID>.|\n
 
-<USER>\<h5(.*)\>\n\<a(.*)\"> { BEGIN NOMEAUTOR; }
-<USER>\<h5(.*)\>\n   { BEGIN CONTADESATIVADA; }
+<USER>\<h5(.*)\>\n\<a(.*)\"> { BEGIN AUTHORNAME; }
+<USER>\<h5(.*)\>\n   { BEGIN ACCOUNTDISABLED; }
 <USER>.|\n     
 
-<NOMEAUTOR>(.*)/\<\/a\>\n\<\/h5\> {
+<AUTHORNAME>(.*)/\<\/a\>\n\<\/h5\> {
                                     ct->user = strdup(yytext);
-                                    //printf("\tUser: %s\n", ct->user); 
                                     BEGIN TIME;
                                   }
 
-<CONTADESATIVADA>(.*)/\n[ ]+\<\/h5\> {
-                                       ct-> user = strdup(yytext);
-                                       //printf("\tUser: %s\n", ct->user);
+<ACCOUNTDISABLED>(.*)/\n[ ]+\<\/h5\> {
+                                       ct->user = strdup(yytext);
                                        BEGIN TIME;
                                      }      
 
@@ -122,7 +98,6 @@ int replies = 0, begin = 1;
 
 <DATE>(.*)/\<\/a> {
                      ct->date = strdup(yytext);
-                     //printf("\tDATE: %s\n", ct->date);
 
                      sscanf(yytext, "%d.%d.%d %d:%d", &day, &month, &year, &hour, &minutes);
 
@@ -139,7 +114,6 @@ int replies = 0, begin = 1;
                      data = mktime(&t);
 
                      ct->timestamp = (long) data;
-                     //printf("\tTimestamp: %ld\n", data);
 
                      BEGIN COMMENT_CONTENT;
                   }
@@ -148,28 +122,28 @@ int replies = 0, begin = 1;
 <COMMENT_CONTENT>.|\n
 
 <TEXT>[^\<]*   {     
-                  test++;
-                  //printf("\tText: %s\n\n", yytext);
-                  ct->commentText = strdup(yytext);
+                  countComments++;
+                  ct->commentText = strdup(takeSpacesOut(yytext));
+
                   BEGIN LIKES;
                }
 
 <LIKES>(.*)\"updatable[ ]+count\"[ ]+\=\"likes\"\>  { BEGIN NUMBERLIKES; }
 <LIKES>.|\n { 
-               if(begin)
+               if(isBegin)
                {
-                  begin = 0;
-                  inicio = ct;
+                  isBegin = 0;
+                  beginCt = ct;
                }
                BEGIN OLIST; 
             }
 
 <NUMBERLIKES>[0-9]*/\<span\>  {
                                  ct->likes = atoi(yytext);
-                                 if(begin)
+                                 if(isBegin)
                                  {
-                                    begin = 0;
-                                    inicio = ct;
+                                    isBegin = 0;
+                                    beginCt = ct;
                                  }
 
                                  BEGIN OLIST;
@@ -187,23 +161,38 @@ int main()
 {
    yylex(); 
 
-   while(inicio != NULL)
+   FILE* file = fopen("Comentarios.json", "w");
+
+   fprintf(file, "{\n");
+   fprintf(file, "\"commentThread\":");
+
+   fclose(file);
+
+   printf("JSON: %d", ctToJson(beginCt, "Comentarios.json"));
+
+   file = fopen("Comentarios.json", "a");
+
+   fprintf(file, "}\n");
+   fclose(file);
+
+/*
+   while(beginCt != NULL)
    {
-      printf("\nId: %s\n", inicio->id);
-      printf("\tUser: %s\n", inicio->user);
-      printf("\tDate: %s\n", inicio->date);
-      printf("\tTimestamp: %ld\n", inicio->timestamp);
-      printf("\tText: %s\n", inicio->commentText);
-      printf("\tLikes: %d\n", inicio->likes);
-      printf("\tHas Replies: %d\n", inicio->hasReplies);
-      printf("\tNumber of Replies: %d\n", inicio->numberReplies);
+      printf("\nId: %s\n", beginCt->id);
+      printf("\tUser: %s\n", beginCt->user);
+      printf("\tDate: %s\n", beginCt->date);
+      printf("\tTimestamp: %ld\n", beginCt->timestamp);
+      printf("\tText: %s\n", beginCt->commentText);
+      printf("\tLikes: %d\n", beginCt->likes);
+      printf("\tHas Replies: %d\n", beginCt->hasReplies);
+      printf("\tNumber of Replies: %d\n", beginCt->numberReplies);
 
-      inicio = inicio->next;
+      beginCt = beginCt->next;
    }
+   */
 
-   printf("\nComentarios Lidos: %d\n", test);
+   printf("\nComentarios Lidos: %d\n", countComments);
    printf("\nComentários: %d\n", numberComments);
-
 
    return 0; 
 }
