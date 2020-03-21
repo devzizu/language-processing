@@ -4,57 +4,74 @@
 #include "commentThread.h"
 
 
-int printCT(COMMENT_T ct, FILE* file)
+int printCT(COMMENT_T ct, FILE* file, char* ahead)
 {
-    fprintf(file, "\t{\n");
+    fprintf(file, "%s{\n", ahead);
 
-    fprintf(file, "\t\t\"id\": \"%s\" ,\n", ct->id);
-    fprintf(file, "\t\t\"user\": \"%s\" ,\n", ct->user);
-    fprintf(file, "\t\t\"date\": \"%s\" ,\n", ct->date);
-    fprintf(file, "\t\t\"timestamp\": %ld ,\n", ct->timestamp);
-    fprintf(file, "\t\t\"commentText\": \"%s\" ,\n", alterQuoteMark(ct->commentText));
-    fprintf(file, "\t\t\"likes\": %d,\n" , ct->likes);
-    fprintf(file, "\t\t\"hasReplies\": \"%s\" ,\n", ct->hasReplies ? "TRUE" : "FALSE");
-    fprintf(file, "\t\t\"numberOfReplies\": %d ,\n", ct->numberReplies);
+    fprintf(file, "%s\t\"id\": \"%s\" ,\n", ahead, ct->id);
+    fprintf(file, "%s\t\"user\": \"%s\" ,\n", ahead, ct->user);
+    fprintf(file, "%s\t\"date\": \"%s\" ,\n", ahead, ct->date);
+    fprintf(file, "%s\t\"timestamp\": %ld ,\n", ahead, ct->timestamp);
+    fprintf(file, "%s\t\"commentText\": \"%s\" ,\n", ahead, alterQuoteMark(ct->commentText));
+    fprintf(file, "%s\t\"likes\": %d,\n" , ahead, ct->likes);
+    fprintf(file, "%s\t\"hasReplies\": \"%s\" ,\n", ahead, ct->hasReplies ? "TRUE" : "FALSE");
+    fprintf(file, "%s\t\"numberOfReplies\": %d ,\n", ahead, ct->numberReplies);
 
-    fprintf(file, "\t\t\"replies\":\n");
+    fprintf(file, "%s\t\"replies\":", ahead);
 }
-
 
 
 int ctToJson(COMMENT_T ct, char* nameFile)
 {
     FILE* file = fopen(nameFile, "a");
 
+    char* ahead = "\t";
+
     fprintf(file, "\t[\n");
 
     while(ct != NULL)
     {
-
-        printCT(ct, file);
+        printCT(ct, file, ahead);
 
         int nReplies = ct->numberReplies;
-
+        
         if(ct->hasReplies)
         {
-            fprintf(file, "\t\t[\n");
-
+            fprintf(file, "\n\t\t[\n");
+            
             while(nReplies > 0)
             {
                 nReplies--;
                 ct = ct->next;
 
-                printCT(ct, file);
+                ahead = "\t\t\t";
+                printCT(ct, file, ahead);
+
+                fprintf(file, "\t\t[ ]\n");
+                
+                if(nReplies > 0)
+                    fprintf(file, "\t\t\t},\n");
+                else
+                    fprintf(file, "\t\t\t}\n");
             }
+
             fprintf(file, "\t\t]\n");
+
+            if(ct->next != NULL)
+                fprintf(file, "\t},\n");
+            else
+                fprintf(file, "\t}\n");
         }
         else
-        {
+        {           
+            fprintf(file, "\t\t[ ]\n");
+            
             if(ct->next != NULL)
                 fprintf(file, "\t},\n");
             else
                 fprintf(file, "\t}\n"); 
         }
+        ahead = "\t";
 
         if(nReplies == 0)
             ct = ct->next;
@@ -62,7 +79,7 @@ int ctToJson(COMMENT_T ct, char* nameFile)
 
     fprintf(file, "]\n");
     
-    return fclose(file);;
+    return fclose(file);
 }
 
 char* alterQuoteMark(char* text)
