@@ -685,15 +685,15 @@ char *yytext;
 #include <stdio.h>
 #include <time.h>
 
-#include "commentThread.h"
-
-
+#include "commentThread.h" 
+ 
 COMMENT_T ct, p, beginCt;
 
 int year, month, day, hour, minutes;
+int replies = 0, isBegin = 1;
 
-int replies = 0, isBegin = 1, countComments = 0,
-   numberComments;
+int countComments = 0, numberComments;
+
 
 #line 699 "lex.yy.c"
 
@@ -1196,7 +1196,7 @@ YY_RULE_SETUP
 #line 124 "filter.l"
 {     
                   countComments++;
-                  ct->commentText = strdup(takeSpacesOut(yytext));
+                  ct->commentText = strdup(takeEnterOut(yytext));
 
                   BEGIN LIKES;
                }
@@ -2245,40 +2245,34 @@ int yywrap()
 
 int main()
 {
-   yylex(); 
 
-   FILE* file = fopen("Comentarios.json", "w");
+
+// -----------------------------------------------------------------------------------------
+
+   yylex(); 
+   
+// -----------------------------------------------------------------------------------------
+// Beginning to create Json file
+// Begins the commentThread structure in Json
+
+   FILE* file = fopen("../Files/comments.json", "w");
 
    fprintf(file, "{\n");
    fprintf(file, "\"commentThread\":");
-
    fclose(file);
 
-   printf("JSON: %d", ctToJson(beginCt, "Comentarios.json"));
+// -----------------------------------------------------------------------------------------
+// Writes in the Json file
+   printf("\nWriting to Json...\n");
+   ctToJson(beginCt, "../Files/comments.json");
+   printf("Ended writing to 'comments.json'\n");
 
-   file = fopen("Comentarios.json", "a");
+// -----------------------------------------------------------------------------------------
 
-   fprintf(file, "}\n");
-   fclose(file);
+   printf("\nRead %d Comments.\n", countComments);
+   printf("Comments in html: %d\n", numberComments);
 
-/*
-   while(beginCt != NULL)
-   {
-      printf("\nId: %s\n", beginCt->id);
-      printf("\tUser: %s\n", beginCt->user);
-      printf("\tDate: %s\n", beginCt->date);
-      printf("\tTimestamp: %ld\n", beginCt->timestamp);
-      printf("\tText: %s\n", beginCt->commentText);
-      printf("\tLikes: %d\n", beginCt->likes);
-      printf("\tHas Replies: %d\n", beginCt->hasReplies);
-      printf("\tNumber of Replies: %d\n", beginCt->numberReplies);
-
-      beginCt = beginCt->next;
-   }
-   */
-
-   printf("\nComentarios Lidos: %d\n", countComments);
-   printf("\nComentários: %d\n", numberComments);
+   printf("\n\tGoodbye...\n");
 
    return 0; 
 }

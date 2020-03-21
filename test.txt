@@ -1,3 +1,0 @@
-<li class="comment" data-comment-id="8bab57a7-e338-478b-09ef-08d7471b2fc4">
-[<h3 class="module__heading module__heading--major"><i aria-hidden="true" class="i-comment"></i> 85 comentários</h3>]
-

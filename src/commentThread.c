@@ -71,13 +71,14 @@ int ctToJson(COMMENT_T ct, char* nameFile)
             else
                 fprintf(file, "\t}\n"); 
         }
+
         ahead = "\t";
 
         if(nReplies == 0)
             ct = ct->next;
     }
 
-    fprintf(file, "]\n");
+    fprintf(file, "]\n}\n");
     
     return fclose(file);
 }
@@ -96,7 +97,7 @@ char* alterQuoteMark(char* text)
     return text;
 }
 
-char* takeSpacesOut(char* text)
+char* takeEnterOut(char* text)
 {
     for(int i=0; text[i] != '\0'; i++)
     {

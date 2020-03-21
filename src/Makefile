@@ -2,12 +2,13 @@
 
 FF = flex
 EXEC = filter
-HTMLFILE = Publico_extraction.html
+HTMLFILE = ../Files/Publico_extraction.html
 
 CC = gcc -g
 CGLAGS = -I
-DEPS = $(wildcard *.h)
-OBJ = $(patsubst %.c,%.o,$(wildcard *.c))
+DEPS = $(wildcard CommentThread/*.h)
+OBJ = $(patsubst %.c, %.o, $(wildcard *.c))
+DIR = CommentThread
 
 install: clean flex filter
 
@@ -20,12 +21,12 @@ filter: $(OBJ)
 
 flex:
 	@echo "[..] Compiling with Flex..."
-	flex filter.l
+	$(FF) filter.l
 
 run:
 	./$(EXEC) < $(HTMLFILE)
 
 clean: 
 	@echo "[..] Cleaning trash files..."
-	rm -rf filter lex.yy.c Comentarios.json
+	rm -rf filter lex.yy.c Files/comments.json
 
