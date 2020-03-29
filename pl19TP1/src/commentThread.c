@@ -23,8 +23,11 @@ int printCT(COMMENT_T ct, FILE* file, char* ahead)
 
 int ctToJson(COMMENT_T ct, char* nameFile)
 {
-    FILE* file = fopen(nameFile, "a");
+    FILE* file = fopen(nameFile, "w");
 
+    fprintf(file, "{\n");
+    fprintf(file, "\"commentThread\":");
+    
     char* ahead = "\t";
 
     fprintf(file, "\t[\n");
