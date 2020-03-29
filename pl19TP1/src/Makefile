@@ -34,5 +34,5 @@ run:
 # Cleans the files previus generated to run the filter
 clean: 
 	@echo "[..] Cleaning trash files..."
-	rm -rf filter lex.yy.c Files/comments.json *.o 
+	rm -rf filter lex.yy.c ../Files/comments.json *.o 
 
