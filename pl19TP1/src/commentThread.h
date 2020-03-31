@@ -41,6 +41,7 @@ char* alterQuoteMark(char* text);
 
 /*
  * Replaces the enter (\n) in the commentary by a space.
+ * Then takes out the spaces from the end of the text
  * It is necessary to make the file Json correct
 */
 char* takeEnterOut(char* text);

@@ -90,12 +90,22 @@ char* alterQuoteMark(char* text)
 {
     char alter = '\"';
     char replace = '\'';
+    int i;
 
-    for(int i=0; text[i] != '\0'; i++)
+    for(i=0; text[i] != '\0'; i++)
     {
         if(text[i] == alter)
             text[i] = replace;
     }
+
+    i--; 
+
+    while(text[i] == ' ')
+    {
+        i--;
+    }
+    
+    text[i+1] = '\0';
 
     return text;
 }

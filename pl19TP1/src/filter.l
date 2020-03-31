@@ -83,7 +83,7 @@ int countComments = 0, numberComments;
                                              BEGIN COMMENT_ID;
                                           }
 <OLIST>\<\/ol\>   { 
-                     if(countComments <= 85)
+                     if(countComments <= numberComments)
                         p->numberReplies = replies;
                   }
 <OLIST>.|\n
@@ -97,7 +97,7 @@ int countComments = 0, numberComments;
 <COMMENT_ID>.|\n
 
 <USER>\<h5(.*)\>\n\<a(.*)\"> { BEGIN AUTHORNAME; }
-<USER>\<h5(.*)\>\n   { BEGIN ACCOUNTDISABLED; }
+<USER>\<h5(.*)\>\n[ ]+   { BEGIN ACCOUNTDISABLED; }
 <USER>.|\n     
 
 <AUTHORNAME>(.*)/\<\/a\>\n\<\/h5\> {
@@ -145,7 +145,7 @@ int countComments = 0, numberComments;
                   BEGIN LIKES;
                }
 
-<LIKES>(.*)\"updatable[ ]+count\"[ ]+\=\"likes\"\>  { BEGIN NUMBERLIKES; }
+<LIKES>(.*)\"updatable(.*)\=\"likes\"\>  { BEGIN NUMBERLIKES; }
 <LIKES>.|\n { 
                if(isBegin)
                {
