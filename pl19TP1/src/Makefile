@@ -11,7 +11,10 @@ OBJ = $(patsubst %.c, %.o, $(wildcard *.c))
 DIR = CommentThread
 
 # Cleans the files, then executes the flex and, at last, compiles the filter
-install: clean flex filter
+install:
+	@$(MAKE) -s clean 
+	@$(MAKE) -s flex
+	@$(MAKE) -s filter
 
 # Compiles all .c files to .o
 %.o: %.c $(DEPS)
