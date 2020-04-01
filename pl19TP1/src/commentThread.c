@@ -50,12 +50,12 @@ int ctToJson(COMMENT_T ct, char* nameFile)
                 ahead = "\t\t\t";
                 printCT(ct, file, ahead);
 
-                fprintf(file, "\t\t[ ]\n");
+                fprintf(file, "\t[ ]\n");
                 
                 if(nReplies > 0)
-                    fprintf(file, "\t\t\t},\n");
+                    fprintf(file, "%s},\n", ahead);
                 else
-                    fprintf(file, "\t\t\t}\n");
+                    fprintf(file, "%s}\n", ahead);
             }
 
             fprintf(file, "\t\t]\n");
@@ -67,7 +67,7 @@ int ctToJson(COMMENT_T ct, char* nameFile)
         }
         else
         {           
-            fprintf(file, "\t\t[ ]\n");
+            fprintf(file, "\t[ ]\n");
             
             if(ct->next != NULL)
                 fprintf(file, "\t},\n");
