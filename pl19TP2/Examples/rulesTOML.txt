@@ -1,0 +1,190 @@
+##############################################################
+Rules of TOML language
+
+# 1)
+Defining a key multiple times is invalid.
+
+name = "Tom"
+name = "Pradyun"        # This is invalid
+
+##############################################################
+-> 2)
+
+Keys are on the left of the equals sign and values are on the right.
+Whitespace is ignored around key names and values.
+The key, equals sign, and value must be on the same line (though some values can be broken over multiple lines).
+
+key = "value"       # VALID
+key =               # INVALID
+
+##############################################################
+-> 3)
+
+A bare key must be non-empty, but an empty quoted key is allowed (though discouraged).
+
+= "no key name"  # INVALID
+"" = "blank"     # VALID but discouraged
+'' = 'blank'     # VALID but discouraged
+
+##############################################################
+-> 4)
+
+# This makes the key "fruit" into a table.
+fruit.apple.smooth = true
+
+# So then you can add to the table "fruit" like so:
+fruit.orange = 2
+# THE FOLLOWING IS INVALID
+
+# This defines the value of fruit.apple to be an integer.
+fruit.apple = 1
+
+# But then this treats fruit.apple like it's a table.
+# You can't turn an integer into a table.
+fruit.apple.smooth = true
+
+##############################################################
+-> 5)
+
+Arrays can span multiple lines. A terminating comma (also called trailing comma) is ok
+after the last value of the array. There can be an arbitrary number of newlines and comments
+before a value and before the closing bracket.
+
+integers2 = [
+  1, 2, 3
+]
+
+integers3 = [
+  1,
+  2, # this is ok
+]
+
+##############################################################
+-> 6)
+
+You don't need to specify all the super-tables if you don't want to. TOML knows how to do it for you.
+
+# [x] you
+# [x.y] don't
+# [x.y.z] need these
+[x.y.z.w] # for this to work
+
+[x] # defining a super-table afterward is ok
+
+
+##############################################################
+-> 7)
+
+Empty tables are allowed and simply have no key/value pairs within them.
+
+Like keys, you cannot define a table more than once. Doing so is invalid.
+
+# DO NOT DO THIS
+
+[fruit]
+apple = "red"
+
+[fruit]
+orange = "orange"
+
+##############################################################
+-> 8)
+
+These can be expressed by using a table name in double brackets. Under that, and until the next table or EOF are the key/values of that table. Each table with the same double bracketed name will be an element in the array of tables. The tables are inserted in the order encountered. A double bracketed table without any key/value pairs will be considered an empty table.
+
+[[products]]
+name = "Hammer"
+sku = 738594937
+
+[[products]]
+
+[[products]]
+name = "Nail"
+sku = 284758393
+
+color = "gray"
+
+##############################################################
+-> 9)
+
+name = { first = "Tom", last = "Preston-Werner" }
+point = { x = 1, y = 2 }
+animal = { type.name = "pug" }
+
+# The inline tables above are identical to the following standard table definitions:
+
+[name]
+first = "Tom"
+last = "Preston-Werner"
+
+[point]
+x = 1
+y = 2
+
+[animal]
+type.name = "pug"
+
+
+##############################################################
+-> 10)
+
+[product]
+type = { name = "Nail" }
+# type.edible = false  # INVALID
+
+
+##############################################################
+-> 11)
+
+[[fruit]]
+  name = "apple"
+
+  [fruit.physical]  # subtable
+    color = "red"
+    shape = "round"
+
+  [[fruit.variety]]  # nested array of tables
+    name = "red delicious"
+
+  [[fruit.variety]]
+    name = "granny smith"
+
+[[fruit]]
+  name = "banana"
+
+  [[fruit.variety]]
+    name = "plantain"
+
+The above TOML maps to the following JSON.
+
+{
+  "fruit": [
+    {
+      "name": "apple",
+      "physical": {
+        "color": "red",
+        "shape": "round"
+      },
+      "variety": [
+        { "name": "red delicious" },
+        { "name": "granny smith" }
+      ]
+    },
+    {
+      "name": "banana",
+      "variety": [
+        { "name": "plantain" }
+      ]
+    }
+  ]
+}
+
+##############################################################
+-> 12)
+
+quot15 = '''Here are fifteen quotation marks: """""""""""""""''' 
+
+Is the same as
+
+quot15 = 'Here are fifteen quotation marks: """""""""""""""'
+
