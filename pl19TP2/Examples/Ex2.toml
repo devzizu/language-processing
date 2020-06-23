@@ -240,3 +240,22 @@ color = "gray"
 
   [[fruit.variety]]
 name = "plantain"
+
+multiLineString = """ 
+are surrounded by three quotation marks
+on each side and allow newlines."""
+
+"A B" = ""
+
+'2' = ""
+"a" = 'a'
+
+literalString = 'are surrounded by single quotes. Escaping are not allowed.'
+
+multiLineLiteralString = '''
+are surrounded by three single quotes on each side
+and allow newlines. Still no escaping.
+The first newline is trimmed in raw strings.
+   All other whitespace
+   is preserved. #! are preserved?
+'''

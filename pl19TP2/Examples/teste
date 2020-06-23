@@ -10,3 +10,19 @@ server = "192.168.1.1"
 ports = [ 8001, 8001, 8002 ]
 connection_max = 5000
 enabled = true
+
+basicString = "are surrounded by quotation marks. \"I'm quotable\". Name\tJos"
+
+multiLineString = """
+are surrounded by three quotation marks
+on each side and allow newlines."""
+
+literalString = 'are surrounded by single quotes. Escaping are not allowed.'
+
+multiLineLiteralString = '''
+are surrounded by three single quotes on each side
+and allow newlines. Still no escaping.
+The first newline is trimmed in raw strings.
+   All other whitespace
+   is preserved. #! are preserved?
+'''

@@ -1,0 +1,64 @@
+      JSON_STRUCT = g_hash_table_new(generalKey_hash, generalKey_equal);
+      
+      GEN_KEY genKey1 = (GEN_KEY) malloc(sizeof(GEN_KEY));
+      genKey1 -> key = strdup("teste1");
+      genKey1 -> type = ISATRIB;
+
+      gboolean exists;
+      printf("\n>> INSERT -> %s\n\n", genKey1->key);
+      exists = g_hash_table_insert(JSON_STRUCT, genKey1, NULL);
+
+      printf("Teste para key = %s | ", genKey1->key);
+      printf("Já existia? %s\n", exists?"Não":"Sim");
+
+      printf("\n>> INSERT -> %s\n\n", genKey1->key);
+      exists = g_hash_table_insert(JSON_STRUCT, genKey1, NULL);
+
+      printf("Teste para key = %s | ", genKey1->key);
+      printf("Já existia? %s\n", exists?"Não":"Sim");
+
+      GEN_KEY genKey2 = (GEN_KEY) malloc(sizeof(GEN_KEY));
+      genKey2 -> key = strdup("teste2");
+      genKey2 -> type = ISATRIB;
+
+      printf("\n>> INSERT -> %s\n\n", genKey2->key);
+      exists = g_hash_table_insert(JSON_STRUCT, genKey2, NULL);
+
+      printf("Teste para key = %s | ", genKey2->key);
+      printf("Já existia? %s\n", exists?"Não":"Sim");
+      printf("\n..........................................\n");
+      printf("Testes de contains: \n\n");
+
+      struct general_key lookupVal;
+      lookupVal.key = "teste1";
+      printf("Já existe %s after contains? %d\n",
+            lookupVal.key,  
+            (int) g_hash_table_contains(JSON_STRUCT, &lookupVal));
+      lookupVal.key = "teste2";
+      printf("Já existe %s after contains? %d\n",
+            lookupVal.key,  
+            (int) g_hash_table_contains(JSON_STRUCT, &lookupVal));
+      lookupVal.key = "teste3";
+      printf("Já existe %s after contains? %d\n",
+            lookupVal.key,  
+            (int) g_hash_table_contains(JSON_STRUCT, &lookupVal));
+
+      printf("\n..........................................\n");
+      printf("Dar print ao estado da hashtable (todas as keys): \n\n");
+
+      GList* keys = g_hash_table_get_keys(JSON_STRUCT);
+
+      int i = 0, size = g_list_length(keys);
+
+      printf("Tamanho da lista: %d\n", size);
+
+      for(; i < size; i++) {
+            GList *element = g_list_nth(keys, i);
+            printf("KEY: %s;\n", ((GEN_KEY) (element -> data)) -> key);
+      }
+
+
+------------------------------------
+Term : Key                                      { gen_key.key = strdup($1); $$ = gen_key; }
+     | Term '.' Key                             { $$ =  }
+     ;
