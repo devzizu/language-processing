@@ -30,7 +30,7 @@ flex:
 	flex $(LEX_FILE)
 
 clean:
-	rm -rf lex.yy.c y.tab.* $(BASE_FILE)
+	rm -rf lex.yy.c y.tab.* *.o $(BASE_FILE)
 
 run:
 	@clear

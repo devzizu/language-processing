@@ -62,3 +62,5 @@
 Term : Key                                      { gen_key.key = strdup($1); $$ = gen_key; }
      | Term '.' Key                             { $$ =  }
      ;
+
+     a.b. c
