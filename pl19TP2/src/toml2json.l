@@ -6,11 +6,13 @@
 
   int IS_RHS = 0;
 
+char* addQuotes(char* string);
+
 %}
 
 %%
 
-[0-9]+-[0-9]+-[0-9]+([T ][0-9]+\:[0-9]+\:[0-9]+(Z|([+-][0-9]+\:[0-9]+))?)?    { yylval.string = strdup(yytext); IS_RHS = 0; return(DATE); }
+[0-9]+-[0-9]+-[0-9]+([T ][0-9]+\:[0-9]+\:[0-9]+(Z|([+-][0-9]+\:[0-9]+))?)?    { yylval.string = strdup(addQuotes(yytext)); IS_RHS = 0; return(DATE); }
 [\[\]=,]                                                                      { IS_RHS = 1; return(yytext[0]); }
 [.#]                                                                          { IS_RHS = 0; return(yytext[0]); }
 [-+]?[0-9]*(\.)?[0-9]+([eE][-+]?[0-9]+)?                                      { yylval.number = atof(yytext); IS_RHS = 0; return(NUM); }
@@ -44,6 +46,19 @@
 .    return ERRO;
 %%
 
-int yywrap(){
+char* addQuotes(char* string)
+{
+  char* result = (char*) malloc(strlen(string) + 2);
+
+  result[0] = '\0';
+  strcat(result, "\"");
+  strcat(result, string);
+  strcat(result, "\"");
+
+  return result;
+}
+
+int yywrap()
+{
   return(1);
 }

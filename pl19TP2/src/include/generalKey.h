@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include <glib.h>
+#include <stdio.h>
 
 // Type of GEN_KEY
 #define ISTABLE 1 
@@ -35,8 +36,6 @@ typedef struct value
     short type;
     short hasValues;
 
-    GSList* listTables;
-
     GList* arrayVal;
     
 } *VALUE;
@@ -48,6 +47,8 @@ typedef struct general_key
     short       isDefined;        
     VALUE       val;
 
+    GList* listTables;
+
 } *GEN_KEY_PTR, GEN_KEY;
 
 
@@ -56,5 +57,10 @@ gboolean generalKey_equal(gconstpointer gen_key1, gconstpointer gen_key2);
 char* getValueString(GEN_KEY_PTR genKey);
 char* strcatarray(char* dest, GList* List, int number);
 char* string_GList(GList* List);
+
+char* concat(const char *s1, const char *s2);
+void tableToJson(GHashTable* tableFinal, FILE* file, char* ahead);
+void writeToJson(GHashTable* tableFinal, const char* fileName);
+
 
 #endif
