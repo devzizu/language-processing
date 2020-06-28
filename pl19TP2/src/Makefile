@@ -36,7 +36,7 @@ flex:
 
 clean:
 	rm -rf lex.yy.c y.tab.* *.o $(BASE_FILE)
-	rm $(JSON_FILE_OUTPUT)
+	rm -rf $(JSON_FILE_OUTPUT)
 
 run:
 	@clear

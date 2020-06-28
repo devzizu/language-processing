@@ -14,11 +14,6 @@
 int yyerror(char* s);
 int yylex(); 
 void print_hashtable(GHashTable* HT, int* tabs);
-int update_table(GHashTable* table, GHashTable* FINAL);
-void insert_table(GHashTable* tableIn, GHashTable* tableOut);
-int add_lastTable(GHashTable* table, GHashTable* term, VALUE val, GHashTable* beginTable, int l_TTable);
-void add_value_lastTable(GHashTable* table, VALUE val, GHashTable* beginTable, int l_TTable);
-int insert_termAtrib(GHashTable* term, VALUE val, GHashTable* table, int l_TTable);
 
 GHashTable* lastTable;
 
@@ -38,53 +33,26 @@ int beforeDeclarations = 0;
 %token <string> KEY_NORMAL KEY_STRING STRING BOOL DATE
 %token <number> NUM 
 %token ERRO 
-%type <json_struct> Language Declarations Definition Table TermTable Term
+%type <json_struct> Table TermTable Term
 %type <string> Key
 %type <val> Value Array
 %type <glist> ArrayString ArrayBool ArrayDate ArrayNum Arrays
 
 %%
 
-Toml : Language                                       { /*
-                                                            GList* keys = g_hash_table_get_keys($1);
-
-                                                            int size = g_list_length(keys);
-
-                                                            printf("Tamanho da lista -> %d\n", size);
-
-                                                            for(int i = 0; i < size; i++) 
-                                                            { 
-                                                                  GList *element = g_list_nth(keys, i);
-                                                                  printf("Hashtable key -> %s;\n", ((GEN_KEY_PTR) (element -> data)) -> key);
-                                                            }*/
-                                                      }
+Toml : Language                                       { ; } 
      ;
 
-Language : Atribuitions Declarations                     { $$ = $2; }
-         | Atribuitions                                  { ; }
+Language : Atribuitions Declarations                  { ; }
+         | Atribuitions                               { ; }
          ;
 
 
-Declarations : Definition                             {
-                                                            /*int exists = g_hash_table_insert(JSON_STRUCT, gk, NULL);
-
-                                                            if (!exists) 
-                                                            {
-                                                                  printf("Erro!");
-                                                                  return(1);
-                                                            } */
-
-                                                            length_TermTable = 0;
-                                                            $$ = $1;
-                                                      }
-             | Declarations Definition                { length_TermTable = 0; $$ = $2; }
+Declarations : Definition                             { length_TermTable = 0; }
+             | Declarations Definition                { length_TermTable = 0; }
              ;
 
-Definition : Table Atribuitions                       { 
-                                                            $$ = $1;
-
-                                                      }
-           | '[' Table ']' Atribuitions               { ; }
+Definition : Table Atribuitions                       { ; }
            ;
 
 Table : '[' TermTable ']'                             { 
@@ -219,13 +187,12 @@ Atrib : Term '=' Value                                {
                                                                               *tabs = 0;
                                                                               printf("More Atributions...\n");
                                                                               print_hashtable(tableFinal, tabs);
-                                                                        }
-                                                                       
+                                                                        }  
                                                                   }
                                                             }      
                                                             else
                                                             {
-                                                                  if (add_lastTable(lastTable, $1, $3, lastTable, length_TermTable) == -1)
+                                                                  if (add_lastTable(lastTable, $1, $3, lastTable, length_TermTable, length_Term, tableFinal) == -1)
                                                                   {
                                                                         printf("\n[Error!] Invalid atribution definition!\n");
                                                                         return -1;
@@ -409,250 +376,6 @@ EndArray :
 
 extern char* yytext;
 
-int update_table(GHashTable* table, GHashTable* FINAL) 
-{
-      GList* keys = g_hash_table_get_keys(table);
-      GList *elementTable = g_list_nth(keys, 0);
-      GEN_KEY_PTR keyTable = (GEN_KEY_PTR) (elementTable -> data);
-
-      if (g_hash_table_contains(FINAL, keyTable))  
-      {
-            GHashTable* valuesTable = (GHashTable*) g_hash_table_lookup(table, keyTable);
-            GHashTable* valuesFinal = (GHashTable*) g_hash_table_lookup(FINAL, keyTable);
-
-            if (valuesFinal == NULL)
-            {
-
-                  GList* keysFinal = g_hash_table_get_keys(FINAL);
-
-                  for (GList* iter = keysFinal; iter != NULL; iter = iter -> next) {                  
-      
-                        GEN_KEY_PTR keyIter = (GEN_KEY_PTR) (iter -> data);
-
-                        if (!strcmp(keyIter -> key, keyTable -> key) && (keyIter -> type != ISTABLE)) {
-
-                              if (keyIter -> isDefined == DEFINED) 
-                                    return -1;  
-                        }
-                  }
-
-                  if (valuesTable != NULL)
-                  {
-
-                        //printf("-----------------------------------> UPDATE_TABLE() =====> VALUES TABLE != NULL\n");
-
-                        valuesFinal = g_hash_table_new(generalKey_hash, generalKey_equal);
-                        g_hash_table_insert(FINAL, keyTable, valuesTable);
-                        
-                        return 0;
-                  }
-                        
-                  return -1;
-                  
-            }
-            else
-            {
-                  if (valuesTable == NULL)
-                  {
-
-                        //printf("-----------------------------------> UPDATE_TABLE() -> valuesTable == NULL\n");
-
-                        GList* k = g_hash_table_get_keys(FINAL);
-                        for (int i = 0; i < g_list_length(k); i++)
-                        {
-                              GList *eTable = g_list_nth(k, i);
-                              GEN_KEY_PTR keyFinal = (GEN_KEY_PTR) (eTable -> data);
-                        
-                              if (!strcmp(keyFinal -> key, keyTable -> key))
-                              {
-                                    if (keyFinal -> isDefined == DEFINED) {
-                                    
-                                          //printf("######### KeyFinal = %s, Defined ? %d\n", keyFinal->key, keyFinal -> isDefined);
-                                          return -1;
-                                    }
-                                    else
-                                    {
-                                          keyFinal -> isDefined = DEFINED;
-                                          keyFinal -> val = keyTable -> val;
-                                          GHashTable* vF = (GHashTable*) g_hash_table_lookup(FINAL, keyFinal);
-                                          g_hash_table_insert(FINAL, keyFinal, vF);
-                                          
-                                          return 0;
-                                    }      
-                              }
-                        }                        
-                  }
-                  else
-                        return update_table(valuesTable, valuesFinal);
-            }
-      }
-      else
-      {
-            insert_table(table, FINAL); 
-            return 0;
-      }    
-}
-
-
-void insert_table(GHashTable* tableIn, GHashTable* tableOut)
-{
-      if (tableIn == NULL)
-            return;
-      if (tableOut == NULL)
-      {
-            tableOut = g_hash_table_new(generalKey_hash, generalKey_equal);
-      }
-      
-      GList* keys = g_hash_table_get_keys(tableIn);
-      GList *elementTable = g_list_nth(keys, 0);
-      GEN_KEY_PTR keyTableIn = (GEN_KEY_PTR) (elementTable -> data);
-      
-      GHashTable* valueTableIn = (GHashTable*) g_hash_table_lookup(tableIn, keyTableIn);
-
-      g_hash_table_insert(tableOut, keyTableIn, valueTableIn);     
-}
-
-
-int add_lastTable(GHashTable* table, GHashTable* term, VALUE val, GHashTable* beginTable, int l_TTable)
-{           
-      int *tabs = (int*) malloc(sizeof(int));
-
-      GList* keys = g_hash_table_get_keys(table);
-      GList *elementTable = g_list_nth(keys, 0);
-
-      GEN_KEY_PTR keyTable = (GEN_KEY_PTR) (elementTable -> data);
-      GHashTable* valueTable = (GHashTable*) g_hash_table_lookup(table, keyTable);
-
-      if (l_TTable == 1)
-      {            
-            GList* listKeysTerm = g_hash_table_get_keys(term);
-            GList *elem = g_list_nth(listKeysTerm, 0);
-            GEN_KEY_PTR keyTerm = (GEN_KEY_PTR) (elem -> data);
-
-            if (valueTable == NULL)
-            {     
-
-                  GHashTable* valuesFinal = (GHashTable*) g_hash_table_lookup(tableFinal, keyTable);
-                  
-                  if (valuesFinal != NULL && g_hash_table_contains(valuesFinal, keyTerm))
-                        return -1;
-
-                  add_value_lastTable(term, val, term, length_Term);
-                  g_hash_table_insert(table, keyTable, term);
-            }
-            else
-            {
-                  if (g_hash_table_contains(valueTable, keyTerm)) {
-
-                        GHashTable* valuesByTerm = (GHashTable*) g_hash_table_lookup(valueTable, keyTerm);
-
-                        if (valuesByTerm == NULL || !g_hash_table_size(valuesByTerm)) {
-                        
-                              return -1;
-                        }
-                  }
-
-                  add_value_lastTable(term, val, term, length_Term);
-
-                  if (update_table(term, valueTable) == -1) return -1;
-
-            }
-            
-            update_table(beginTable, tableFinal);
-
-            return 0;
-      }
-      else
-            return add_lastTable(valueTable, term, val, beginTable, l_TTable - 1);
-   
-}
-
-void add_value_lastTable(GHashTable* table, VALUE val, GHashTable* beginTable, int l_TTable)
-{
-      GList* keys = g_hash_table_get_keys(table);
-      GList *elementTable = g_list_nth(keys, 0);
-      GEN_KEY_PTR keyTable = (GEN_KEY_PTR) (elementTable -> data);
-      
-      GHashTable* valueTable = (GHashTable*) g_hash_table_lookup(table, keyTable);
-
-      if (l_TTable == 1)
-      {                        
-            keyTable -> val = val;
-      }
-      else
-            add_value_lastTable(valueTable, val, beginTable, l_TTable - 1);
-}
-
-
-int insert_termAtrib(GHashTable* term, VALUE val, GHashTable* table, int l_TTable)
-{
-      GList* keysTerm = g_hash_table_get_keys(term);
-      GList *elementTerm = g_list_nth(keysTerm, 0);
-      GEN_KEY_PTR keyTerm = (GEN_KEY_PTR) (elementTerm -> data);
-
-      if (g_hash_table_contains(table, keyTerm))
-      {
-            GHashTable* valueTable = (GHashTable*) g_hash_table_lookup(table, keyTerm);
-
-            if (valueTable == NULL)      
-                  return -1;
-            else
-            {
-                  GHashTable* valueTerm = (GHashTable*) g_hash_table_lookup(term, keyTerm);
-
-                  if (valueTerm == NULL)
-                        return -1;
-                  
-                  return insert_termAtrib(valueTerm, val, valueTable, l_TTable - 1);
-            }
-      }
-      else
-      {
-          add_value_lastTable(term, val, term, l_TTable);
-            
-            if(update_table(term, table))
-                  return -1;
-      }
-
-      return 0;
-}
-
-void print_hashtable(GHashTable* HT, int* tabs) {
-
-      if (HT == NULL) {
-            for (int j = 0; j < *tabs; j++)
-                  printf("\t");
-            printf("(null value)\n");
-            return;
-      }
-
-      GList* keys = g_hash_table_get_keys(HT);
-
-      for (int j = 0; j < *tabs; j++)
-      printf("\t");
-
-      printf("HashTable:\n");
-
-      for (int i = 0; i < g_list_length(keys); i++) {
-
-            for (int j = 0; j < *tabs; j++)
-                  printf("\t");
-
-            GList *element = g_list_nth(keys, i);
-
-            char* valueAsString = getValueString( (GEN_KEY_PTR) element -> data);
-            printf("> Key: %s (%s), values:\n", ((GEN_KEY_PTR) (element -> data)) -> key, valueAsString);
-            //free(valueAsString);
-
-            gpointer value = g_hash_table_lookup(HT, (GEN_KEY_PTR) (element -> data));
-            *tabs = *tabs + 1;
-            print_hashtable((GHashTable*) value, tabs);
-            *tabs = *tabs - 1;
-      }
-
-      printf("\n");
-}
-
 int yyerror(char *s) 
 {
 	printf("\n[Error!] Got syntax error, <Invalid char sequence:%s>\n", yytext);
@@ -676,10 +399,9 @@ int main(int argc, char const *argv[])
             case 0:
       
             printf("Writing to Json...\n");
-
             writeToJson(tableFinal, argv[1]);
-
             printf("\nProgram finished...\n\tGoodbye :)\n");
+            
             break;
       
             default :

@@ -8,6 +8,7 @@ char* string_ListArrays(GList* List);
 char* alterQuoteMark(char* text);
 
 char floatResultString[256];
+char stringRArr[624];
 
 char* strcatarray(char* dest, GList* List, int number) 
 {
@@ -102,19 +103,22 @@ char* string_GList(GList* List)
         case _FLOAT: 
 
             floatResultString[0] = '\0';
+//            memset(floatResultString, 0, 256);
 
             string_NumArray(List, number, &floatResultString[0], 256);
 
             return strdup(floatResultString);
         case _BOOL:
         case _STRING:
-        
+        {
                 for (int i = 0; i < number; i++)   
                     sum += strlen( (char*) g_list_nth(List, i) -> data );
 
+                
+
                 // sum + 1 (strings to add) ; + 2 ("[" and "]") ; + number - 1 (number of ",")
-                return strcatarray((char*) malloc(sum + 1 + 2 + (number - 1)), List, number);
-        
+                return strdup(strcatarray(stringRArr, List, number));
+        }
         default: 
 
             return string_ListArrays(List);
@@ -129,7 +133,6 @@ char* string_ListArrays(GList* List)
 
     for (int i = 0; i < g_list_length(List); i++)
     {
-
         VALUE singleVal = (VALUE) malloc(sizeof(struct value));
         singleVal -> type = _STRING;
         singleVal -> vals = string_GList( (GList*) ((VALUE) g_list_nth(List, i) -> data) -> arrayVal ); 
@@ -165,7 +168,7 @@ char* getValueString(GEN_KEY_PTR genKey)
             {
                 sprintf(c, "%.3f", (float) ( (VALUE) genKey -> val) -> valf); 
             }
-            return strdup(c);
+            return strdup(c); 
         case _BOOL :
             return strdup((genKey -> val) -> vals);
         case HASNT_VALUES :
@@ -211,6 +214,16 @@ char* alterQuoteMark(char* text)
     return text;
 }
 
+int hasQuote(char* text)
+{
+    for (int i = 0; text[i] != '\0'; i++)
+    {
+        if (text[i] == '\"' || text[i] == '\'')
+            return 1;
+    }
+    return 0;
+}
+
 void tableToJson(GHashTable* tableFinal, FILE* file, char* ahead)
 {
     if (tableFinal == NULL)
@@ -224,7 +237,10 @@ void tableToJson(GHashTable* tableFinal, FILE* file, char* ahead)
 
         if (keyTable -> type == ISTABLE)
         {
-            fprintf(file, "%s\"%s\":\n%s{\n", ahead, keyTable -> key, ahead);
+            if (hasQuote(keyTable -> key))
+                fprintf(file, "%s%s:\n%s{\n", ahead, alterQuoteMark(keyTable -> key), ahead);
+            else
+                fprintf(file, "%s\"%s\":\n%s{\n", ahead, alterQuoteMark(keyTable -> key), ahead);
 
             GHashTable* values = (GHashTable*) g_hash_table_lookup(tableFinal, keyTable);
 
@@ -237,19 +253,22 @@ void tableToJson(GHashTable* tableFinal, FILE* file, char* ahead)
         }
         else
         {
-            fprintf(file, "%s\"%s\":", ahead, keyTable -> key);
-            
+            if (hasQuote(keyTable -> key))
+                fprintf(file, "%s%s:", ahead, keyTable -> key);
+            else
+                fprintf(file, "%s\"%s\":", ahead, keyTable -> key);
+
             if (i == g_hash_table_size(tableFinal) - 1)
-                fprintf(file, " %s\n", getValueString(keyTable));
+                    fprintf(file, " %s\n", alterQuoteMark(getValueString(keyTable)));
             else 
-                fprintf(file, " %s,\n", getValueString(keyTable));
+                fprintf(file, " %s,\n", alterQuoteMark(getValueString(keyTable)));
         }
     }
 
 }
 
 void writeToJson(GHashTable* tableFinal, const char* fileName)
-{
+{    
     FILE* file = fopen(fileName, "w");
 
     fprintf(file, "{\n");

@@ -16,7 +16,15 @@ char* addQuotes(char* string);
 [\[\]=,]                                                                      { IS_RHS = 1; return(yytext[0]); }
 [.#]                                                                          { IS_RHS = 0; return(yytext[0]); }
 [-+]?[0-9]*(\.)?[0-9]+([eE][-+]?[0-9]+)?                                      { yylval.number = atof(yytext); IS_RHS = 0; return(NUM); }
-(true|false)                                                                  { yylval.string = strdup(yytext); IS_RHS = 0; return(BOOL); }
+(true|false)                                                                  { if (!IS_RHS)
+                                                                                {
+                                                                                  IS_RHS = 1;
+                                                                                  yylval.string = strdup(yytext);
+                                                                                  return(KEY_NORMAL);
+                                                                                }
+                                                                                yylval.string = strdup(yytext); 
+                                                                                IS_RHS = 0; return(BOOL); 
+                                                                              }
 [a-zA-Z_0-9-]+                                                                { 
                                                                                 //printf("\tKey_normal : %s\n", yytext);
                                                                                 yylval.string = strdup(yytext); 

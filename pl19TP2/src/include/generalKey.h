@@ -54,13 +54,12 @@ typedef struct general_key
 
 guint generalKey_hash(gconstpointer gen_key);
 gboolean generalKey_equal(gconstpointer gen_key1, gconstpointer gen_key2);
-char* getValueString(GEN_KEY_PTR genKey);
-char* strcatarray(char* dest, GList* List, int number);
-char* string_GList(GList* List);
 
-char* concat(const char *s1, const char *s2);
-void tableToJson(GHashTable* tableFinal, FILE* file, char* ahead);
-void writeToJson(GHashTable* tableFinal, const char* fileName);
-
+void insert_table(GHashTable* tableIn, GHashTable* tableOut);
+int update_table(GHashTable* table, GHashTable* FINAL);
+int add_lastTable(GHashTable* table, GHashTable* term, VALUE val, GHashTable* beginTable, int l_TTable, int length_Term, GHashTable* tableFinal);
+void add_value_lastTable(GHashTable* table, VALUE val, GHashTable* beginTable, int l_TTable);
+int insert_termAtrib(GHashTable* term, VALUE val, GHashTable* table, int l_TTable);
+void print_hashtable(GHashTable* HT, int* tabs);
 
 #endif
