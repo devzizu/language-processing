@@ -15,15 +15,34 @@ int yyerror(char* s);
 int yylex(); 
 void print_hashtable(GHashTable* HT, int* tabs);
 
+/*
+ * HashTable that represents the last inserted table. It's required to know when we are 
+ * inserting the hashtable with the atributions on the hastable final with the correct table 
+ */
 GHashTable* lastTable;
 
-GHashTable* temp;
-
+/*
+ * Hashtable which the writer to Json file receives. This is the main hashtable of the data structure
+ */
 GHashTable* tableFinal;
 
+/* 
+ * Variable that counts the number of depth that one table has. Necessary for the atributions to know 
+ * how we can go through the hashtable. In the example "[a.b]", this variable has the value 2 
+ */
 int length_TermTable = 0;
+
+/* 
+ * This variable is identique to the above one, only differentiating in the use of her. This one is used when
+ * we have an atribute like "a.b.c = 3". In this case, the length_Term equals to 3
+ */
 int length_Term = 0;
 
+
+/*
+ * This one works as a boolean, indicating if we are before or after a declaration. 
+ * If we are before it has the value 0, otherwise 1
+ */
 int beforeDeclarations = 0;
 
 %}
@@ -391,7 +410,6 @@ int main(int argc, char const *argv[])
       }
 
       lastTable = g_hash_table_new(generalKey_hash, generalKey_equal);
-      temp = g_hash_table_new(generalKey_hash, generalKey_equal);
       tableFinal = g_hash_table_new(generalKey_hash, generalKey_equal);
 
       switch(yyparse())

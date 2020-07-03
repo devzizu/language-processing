@@ -47,12 +47,12 @@ int update_table(GHashTable* table, GHashTable* FINAL)
             {
                   GList* keysFinal = g_hash_table_get_keys(FINAL);
 
-                  for (GList* iter = keysFinal; iter != NULL; iter = iter -> next) {                  
-      
+                  for (GList* iter = keysFinal; iter != NULL; iter = iter -> next) 
+                  {                  
                         GEN_KEY_PTR keyIter = (GEN_KEY_PTR) (iter -> data);
 
-                        if (!strcmp(keyIter -> key, keyTable -> key) && (keyIter -> type != ISTABLE)) {
-
+                        if (!strcmp(keyIter -> key, keyTable -> key) && (keyIter -> type != ISTABLE))
+                        {
                               if (keyIter -> isDefined == DEFINED) 
                                     return -1;  
                         }
@@ -123,7 +123,6 @@ int add_lastTable(GHashTable* table, GHashTable* term, VALUE val, GHashTable* be
 
             if (valueTable == NULL)
             {     
-
                   GHashTable* valuesFinal = (GHashTable*) g_hash_table_lookup(tableFinal, keyTable);
                   
                   if (valuesFinal != NULL && g_hash_table_contains(valuesFinal, keyTerm))
@@ -134,19 +133,18 @@ int add_lastTable(GHashTable* table, GHashTable* term, VALUE val, GHashTable* be
             }
             else
             {
-                  if (g_hash_table_contains(valueTable, keyTerm)) {
-
+                  if (g_hash_table_contains(valueTable, keyTerm)) 
+                  {
                         GHashTable* valuesByTerm = (GHashTable*) g_hash_table_lookup(valueTable, keyTerm);
 
-                        if (valuesByTerm == NULL || !g_hash_table_size(valuesByTerm)) {
-                        
+                        if (valuesByTerm == NULL || !g_hash_table_size(valuesByTerm))
                               return -1;
-                        }
                   }
 
                   add_value_lastTable(term, val, term, length_Term);
 
-                  if (update_table(term, valueTable) == -1) return -1;
+                  if (update_table(term, valueTable) == -1) 
+                        return -1;
 
             }
             
@@ -156,7 +154,6 @@ int add_lastTable(GHashTable* table, GHashTable* term, VALUE val, GHashTable* be
       }
       else
             return add_lastTable(valueTable, term, val, beginTable, l_TTable - 1, length_Term, tableFinal);
-   
 }
 
 void add_value_lastTable(GHashTable* table, VALUE val, GHashTable* beginTable, int l_TTable)
@@ -167,10 +164,8 @@ void add_value_lastTable(GHashTable* table, VALUE val, GHashTable* beginTable, i
       
       GHashTable* valueTable = (GHashTable*) g_hash_table_lookup(table, keyTable);
 
-      if (l_TTable == 1)
-      {                        
+      if (l_TTable == 1)                    
             keyTable -> val = val;
-      }
       else
             add_value_lastTable(valueTable, val, beginTable, l_TTable - 1);
 }
@@ -225,8 +220,8 @@ void print_hashtable(GHashTable* HT, int* tabs)
 
       printf("HashTable:\n");
 
-      for (int i = 0; i < g_list_length(keys); i++) {
-
+      for (int i = 0; i < g_list_length(keys); i++) 
+      {
             for (int j = 0; j < *tabs; j++)
                   printf("\t");
 

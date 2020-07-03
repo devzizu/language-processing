@@ -43,6 +43,7 @@ void string_NumArray(GList* floatList, int array_size, char* output_string, int 
     char* aux_string = NULL;
 
     aux_string = (char*) malloc(15);
+    
     if (!aux_string)
         return;
 
@@ -101,20 +102,14 @@ char* string_GList(GList* List)
     switch(v -> type) 
     {
         case _FLOAT: 
-
             floatResultString[0] = '\0';
-//            memset(floatResultString, 0, 256);
-
             string_NumArray(List, number, &floatResultString[0], 256);
-
             return strdup(floatResultString);
         case _BOOL:
         case _STRING:
         {
                 for (int i = 0; i < number; i++)   
                     sum += strlen( (char*) g_list_nth(List, i) -> data );
-
-                
 
                 // sum + 1 (strings to add) ; + 2 ("[" and "]") ; + number - 1 (number of ",")
                 return strdup(strcatarray(stringRArr, List, number));

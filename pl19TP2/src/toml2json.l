@@ -1,10 +1,9 @@
 %{
+#include <string.h>
+#include "y.tab.h"
 
-  #include <string.h>
-
-  #include "y.tab.h"
-
-  int IS_RHS = 0;
+// Indicates if it's on the right side of the "=", i.e, right side of key = value 
+int IS_RHS = 0;
 
 char* addQuotes(char* string);
 
@@ -54,6 +53,10 @@ char* addQuotes(char* string);
 .    return ERRO;
 %%
 
+/*
+ * Function that adds quotes on a string. 
+ * This function is required to the final Json file, because every string needs quotes
+ */
 char* addQuotes(char* string)
 {
   char* result = (char*) malloc(strlen(string) + 2);
